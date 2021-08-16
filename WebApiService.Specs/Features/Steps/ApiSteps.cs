@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
@@ -7,6 +8,7 @@ using NUnit.Framework;
 using RestSharp;
 using TechTalk.SpecFlow;
 using WebApiHolidays.Data.Models;
+using static System.IO.Path;
 
 namespace WebApiHolidays.Specs.Features.Steps
 {
@@ -21,7 +23,12 @@ namespace WebApiHolidays.Specs.Features.Steps
         [Given(@"User sends GET request to (.*) service with Year (.*) and Country (.*)")]
         public void UserSendsRequest(string service, string year, string country)
         {
-            _http = new RestClient("https://date.nager.at/api/v3/publicholidays/");
+            // TODO: implement file helper
+            string settingFilePath =
+                GetFullPath(Combine(AppDomain.CurrentDomain.BaseDirectory, "../../../appsettings.json"));
+            string baseUrl = new ConfigurationBuilder().AddJsonFile(settingFilePath).Build().GetSection("Services")[service];
+
+            _http = new RestClient(baseUrl);
             _request = new RestRequest("{year}/{country}", Method.GET);
 
             _request.AddUrlSegment("country", country);
